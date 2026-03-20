@@ -1,5 +1,5 @@
 const siteConfig = {
-  title: "ELBEDI",
+  title: "Juanma",
   url: "https://elbedi.com",
   lang: "es-MX",
   theme: "dark",
