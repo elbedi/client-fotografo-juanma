@@ -17,7 +17,6 @@ export default function useScrollAnimation(
     ).scrollHeight;
     const cinematicElement = document.querySelector(contentSelector + ">div");
 
-    // altura maxima del scroll
     let maxScroll = scrollActionHeightCount - window.innerHeight;
 
     function preloadImages() {
