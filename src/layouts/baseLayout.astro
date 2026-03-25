@@ -11,7 +11,7 @@ import Footer from "./partials/footer.jsx";
 <html lang={siteConfig.lang}>
   <Head />
   <body
-    class="bg-neutral-950 text-neutral-100 font-sans antialiased selection:bg-white/10">
+    class="bg-background text-on-background font-body antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
     <Header brand={site.name} ctaLabel={site.ctaText} />
     <slot />
     <Footer brand={site.name} email={site.email} phone={site.phone} />
@@ -19,6 +19,70 @@ import Footer from "./partials/footer.jsx";
     <script>
       import { initLenis } from "../lib/lenis.js";
       initLenis();
+
+      const activeClass = "border-b-2 border-[#ccff00] pb-1 text-[#ccff00]";
+      const inactiveClass = "text-white/60 transition-colors hover:text-white";
+
+      const navLinks = Array.from(
+        document.querySelectorAll<HTMLAnchorElement>("[data-nav-link]"),
+      );
+      const sectionLinks = navLinks.filter((link) => {
+        const href = link.getAttribute("href") || "";
+        return href.startsWith("#") && href.length > 1;
+      });
+
+      const sections = sectionLinks.reduce<
+        Array<{ id: string; section: HTMLElement }>
+      >((acc, link) => {
+        const id = (link.getAttribute("href") || "").slice(1);
+        const section = document.getElementById(id);
+        if (section) {
+          acc.push({ id, section });
+        }
+        return acc;
+      }, []);
+
+      const setActiveLink = (id: string) => {
+        sectionLinks.forEach((link) => {
+          const isActive = link.getAttribute("href") === `#${id}`;
+          link.dataset.active = isActive ? "true" : "false";
+          if (isActive) {
+            link.setAttribute("aria-current", "page");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+          link.className = isActive ? activeClass : inactiveClass;
+        });
+      };
+
+      if (sections.length > 0) {
+        let activeId = sections[0].id;
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            const visibleEntries = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+            if (visibleEntries.length === 0) {
+              return;
+            }
+
+            const nextId = visibleEntries[0].target.id;
+            if (nextId !== activeId) {
+              activeId = nextId;
+              setActiveLink(activeId);
+            }
+          },
+          {
+            rootMargin: "-30% 0px -55% 0px",
+            threshold: [0.1, 0.25, 0.4, 0.6],
+          },
+        );
+
+        sections.forEach(({ section }) => observer.observe(section));
+        setActiveLink(activeId);
+      }
     </script>
   </body>
 </html>

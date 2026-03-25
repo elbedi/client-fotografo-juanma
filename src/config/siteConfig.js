@@ -1,9 +1,10 @@
 const siteConfig = {
-  title: "Juanma",
+  title: "ARCHIVE_01 // TERMINAL DE DATOS VISUALES",
   url: "https://elbedi.com",
   lang: "es-MX",
   theme: "dark",
-  description: "Framework base para sitios modernos y escalables.",
+  description:
+    "Portafolio visual cyberpunk para fotografia editorial, comercial y de producto.",
   mainImage: "/og-default.jpg",
   robots:
     "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",

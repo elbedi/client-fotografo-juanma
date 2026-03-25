@@ -1,1 +1,98 @@
 @import "tailwindcss";
+
+@theme {
+	--color-tertiary-container: #d2e5f5;
+	--color-outline: #8e9379;
+	--color-primary-fixed: #c3f400;
+	--color-inverse-primary: #506600;
+	--color-error-container: #93000a;
+	--color-tertiary: #ffffff;
+	--color-secondary: #d3fbff;
+	--color-surface-tint: #abd600;
+	--color-on-secondary-container: #00686f;
+	--color-secondary-container: #00eefc;
+	--color-on-surface: #e5e2e1;
+	--color-on-background: #e5e2e1;
+	--color-on-error-container: #ffdad6;
+	--color-on-primary-fixed-variant: #3c4d00;
+	--color-surface-container-lowest: #0e0e0e;
+	--color-tertiary-fixed-dim: #b6c9d8;
+	--color-inverse-surface: #e5e2e1;
+	--color-on-secondary-fixed-variant: #004f54;
+	--color-surface-dim: #131313;
+	--color-surface-variant: #353534;
+	--color-primary-fixed-dim: #abd600;
+	--color-surface-container-high: #2a2a2a;
+	--color-on-primary-fixed: #161e00;
+	--color-surface-container-highest: #353534;
+	--color-on-primary-container: #556d00;
+	--color-surface: #131313;
+	--color-on-tertiary-container: #556774;
+	--color-inverse-on-surface: #313030;
+	--color-secondary-fixed: #7df4ff;
+	--color-on-primary: #283500;
+	--color-on-tertiary: #21323e;
+	--color-secondary-fixed-dim: #00dbe9;
+	--color-outline-variant: #444933;
+	--color-on-error: #690005;
+	--color-surface-container-low: #1c1b1b;
+	--color-primary-container: #c3f400;
+	--color-on-secondary: #00363a;
+	--color-on-secondary-fixed: #002022;
+	--color-surface-container: #201f1f;
+	--color-background: #131313;
+	--color-on-tertiary-fixed-variant: #374956;
+	--color-tertiary-fixed: #d2e5f5;
+	--color-primary: #ffffff;
+	--color-surface-bright: #3a3939;
+	--color-on-surface-variant: #c4c9ac;
+	--color-error: #ffb4ab;
+	--color-on-tertiary-fixed: #0b1d29;
+
+	--font-headline: "Space Grotesk", sans-serif;
+	--font-body: "Manrope", sans-serif;
+	--font-label: "Space Grotesk", sans-serif;
+}
+
+:root {
+	color-scheme: dark;
+}
+
+body {
+	overflow-x: hidden;
+}
+
+.material-symbols-outlined {
+	font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.glow-text {
+	text-shadow: 0 0 10px rgba(195, 244, 0, 0.5);
+}
+
+.scanline {
+	background: linear-gradient(to bottom, transparent 50%, rgba(195, 244, 0, 0.05) 51%);
+	background-size: 100% 4px;
+}
+
+.no-scrollbar {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+::-webkit-scrollbar {
+	width: 4px;
+	height: 4px;
+}
+
+::-webkit-scrollbar-track {
+	background: #0e0e0e;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #c3f400;
+}
