@@ -46,17 +46,12 @@ export default function HeroCinematic() {
             <div
               className="h-dvh w-full flex justify-end"
               id="cinematic-container">
-              <div
-                className="cinematic-element h-full w-full object-fit bg-h-100 bg-no-repeat bg-right"
-                style={{ transition: "0s" }}
+              <canvas
+                className="h-full w-full"
+                aria-label="Secuencia cinematografica"
+                role="img"
               />
-              {/* <img
-                src="/images/hero-frames/Video_Project_1__001.webp"
-                alt="Retrato cinematografico cyberpunk"
-                className="h-full  object-cover"
-              /> */}
             </div>
-            {/* <video src="/videos/hero.mp4" muted></video> */}
             <div
               className="absolute inset-0"
               style={{
