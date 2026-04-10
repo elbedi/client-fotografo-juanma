@@ -5,11 +5,11 @@ const siteConfig = {
   theme: "dark",
   description:
     "Portafolio visual cyberpunk para fotografia editorial, comercial y de producto.",
-  mainImage: "/og-default.jpg",
+  mainImage: "/images/main_image.webp",
   robots:
     "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
   twitterCard: "summary_large_image",
-  favicon: "/images/favicon.svg",
+  favicon: "/images/archive_01_favicon.png",
 };
 
 export default siteConfig;

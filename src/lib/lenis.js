@@ -13,7 +13,8 @@ export function initLenis() {
     autoRaf: false,
     anchors: true,
     smoothWheel: true,
-    wheelMultiplier: 0.4,
+    wheelMultiplier: 0.65,
+    duration: 2,
   });
 
   const scrollTrigger = window.ScrollTrigger;

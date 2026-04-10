@@ -1,10 +1,22 @@
 ---
 import Layout from "../layouts/baseLayout.astro";
-import HomePageContent from "../sections/home/HomePageContent.jsx";
+import HeroCinematic from "../sections/hero/HeroCinematic.jsx";
+import WorkGridSection from "../sections/work-grid/WorkGridSection.jsx";
+import AboutSection from "../sections/about/AboutSection.jsx";
+import ServicesSection from "../sections/services/ServicesSection.jsx";
+import FeedSection from "../sections/feed/FeedSection.jsx";
+import ContactSection from "../sections/contact/ContactSection.jsx";
 ---
 
 <Layout
   title="ARCHIVE_01 // TERMINAL DE DATOS VISUALES"
   description="Portafolio visual de fotografia de alto impacto con estetica cyberpunk.">
-  <HomePageContent client:load />
+  <main>
+    <HeroCinematic client:load />
+    <WorkGridSection client:load />
+    <AboutSection client:load />
+    <ServicesSection />
+    <FeedSection client:load />
+    <ContactSection />
+  </main>
 </Layout>

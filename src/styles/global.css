@@ -96,3 +96,60 @@ body {
 ::-webkit-scrollbar-thumb {
 	background: #c3f400;
 }
+
+.work-card {
+	contain: layout paint;
+	content-visibility: auto;
+	contain-intrinsic-size: 640px;
+}
+
+.work-card-image {
+	transform: translateZ(0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.work-card-image {
+		filter: grayscale(1);
+		transition: transform 700ms, filter 700ms;
+	}
+
+	.work-card:hover .work-card-image {
+		transform: scale(1.1);
+		filter: grayscale(0);
+	}
+}
+
+.glitch-text {
+    animation: text-glitch 6s ease-in-out infinite;
+}
+
+@keyframes text-glitch {
+    0%,
+    92%,
+    100% {
+        transform: translateX(0);
+        text-shadow: none;
+    }
+    93% {
+        transform: translateX(-2px);
+        text-shadow:
+            2px 0 var(--glitch-cyan),
+            -2px 0 var(--glitch-red);
+    }
+    94% {
+        transform: translateX(2px);
+        text-shadow:
+            -2px 0 var(--glitch-cyan),
+            2px 0 var(--glitch-red);
+    }
+    95% {
+        transform: translateX(-1px);
+        text-shadow:
+            1px 0 var(--glitch-cyan),
+            -1px 0 var(--glitch-red);
+    }
+    96% {
+        transform: translateX(1px);
+        text-shadow: none;
+    }
+}

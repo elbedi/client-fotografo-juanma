@@ -6,8 +6,23 @@ export default function useScrollAnimation(
   framesCount,
   generalImageName,
   scrollActionContainer,
+  options = {},
 ) {
+  const startOffset = options?.startOffset ?? "0px";
+  const endOffset = options?.endOffset ?? "0px";
+  const mobileStartOffset = options?.mobileStartOffset;
+  const mobileEndOffset = options?.mobileEndOffset;
+  const mobileResizeJumpThreshold = options?.mobileResizeJumpThreshold ?? 180;
+  const enabled = options?.enabled ?? true;
+  const activateRootMargin =
+    options?.activateRootMargin ?? "1200px 0px 1200px 0px";
+  const mobileActivateRootMargin = options?.mobileActivateRootMargin;
+
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const maxFrames = Number(framesCount) || 0;
     const container = document.querySelector(contentSelector);
     const scrollElement = document.querySelector(scrollActionContainer);
@@ -31,13 +46,40 @@ export default function useScrollAnimation(
       return;
     }
 
+    const isMobile = window.matchMedia(
+      "(max-width: 768px), (pointer: coarse)",
+    ).matches;
+    const effectiveStartOffset =
+      isMobile && mobileStartOffset != null ? mobileStartOffset : startOffset;
+    const effectiveEndOffset =
+      isMobile && mobileEndOffset != null ? mobileEndOffset : endOffset;
+    const effectiveRootMargin =
+      isMobile && mobileActivateRootMargin != null
+        ? mobileActivateRootMargin
+        : activateRootMargin;
+    const viewport = window.visualViewport;
+    const getCurrentViewportHeight = () => {
+      const visualHeight = viewport?.height;
+      return Math.max(1, Math.round(visualHeight || window.innerHeight));
+    };
+
+    let stableViewportHeight = getCurrentViewportHeight();
+    let lastViewportWidth = Math.round(window.innerWidth);
+
+    const getEffectiveViewportHeight = () =>
+      isMobile ? stableViewportHeight : window.innerHeight;
+
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+
     const loadedFrames = new Map();
     const pendingFrames = new Map();
 
     let currentFrame = 1;
     let targetFrame = 1;
     let latestScrollY = window.scrollY;
-    let maxScroll = 1;
+    let sectionStartY = 0;
+    let sectionEndY = 1;
     let rafId = 0;
     let ticking = false;
     let destroyed = false;
@@ -86,7 +128,8 @@ export default function useScrollAnimation(
     };
 
     const resizeCanvas = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const maxDpr = isMobile ? 2 : 4;
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
       const width = Math.max(1, Math.floor(container.clientWidth * dpr));
       const height = Math.max(1, Math.floor(container.clientHeight * dpr));
 
@@ -117,7 +160,7 @@ export default function useScrollAnimation(
       const scale = Math.max(cw / iw, ch / ih);
       const dw = iw * scale;
       const dh = ih * scale;
-      const dx = cw - dw;
+      const dx = (cw - dw) / 2;
       const dy = (ch - dh) / 2;
 
       context.clearRect(0, 0, cw, ch);
@@ -125,13 +168,55 @@ export default function useScrollAnimation(
     };
 
     const recalculateScrollRange = () => {
-      maxScroll = Math.max(1, scrollElement.scrollHeight - window.innerHeight);
+      const toScrollOffsetPx = (value) => {
+        if (typeof value === "number") {
+          return value;
+        }
+
+        const normalized = String(value).trim().toLowerCase();
+        const match = normalized.match(/^(-?\d*\.?\d+)(svh|vh|px)?$/);
+
+        if (!match) {
+          return 0;
+        }
+
+        const amount = Number(match[1]);
+        const unit = match[2] || "px";
+
+        if (unit === "vh" || unit === "svh") {
+          return (amount / 100) * getEffectiveViewportHeight();
+        }
+
+        return amount;
+      };
+
+      const viewportHeight = getEffectiveViewportHeight();
+      const rect = scrollElement.getBoundingClientRect();
+      const absoluteTop = window.scrollY + rect.top;
+      const absoluteBottom = absoluteTop + rect.height;
+      const requestedStart = absoluteTop;
+      const requestedEnd = absoluteBottom - viewportHeight;
+      const startOffsetPx = toScrollOffsetPx(effectiveStartOffset);
+      const endOffsetPx = toScrollOffsetPx(effectiveEndOffset);
+
+      sectionStartY = requestedStart;
+      sectionEndY =
+        requestedEnd > requestedStart ? requestedEnd : absoluteBottom;
+
+      sectionStartY -= startOffsetPx;
+      sectionEndY -= endOffsetPx;
     };
 
     const render = () => {
       ticking = false;
 
-      const progress = Math.min(1, Math.max(0, latestScrollY / maxScroll));
+      const range = sectionEndY - sectionStartY;
+      const progress =
+        range <= 0
+          ? latestScrollY >= sectionStartY
+            ? 1
+            : 0
+          : Math.min(1, Math.max(0, (latestScrollY - sectionStartY) / range));
       targetFrame = Math.min(
         maxFrames,
         Math.max(1, Math.round(progress * (maxFrames - 1)) + 1),
@@ -160,13 +245,37 @@ export default function useScrollAnimation(
     };
 
     const handleResize = () => {
+      if (isMobile) {
+        const nextViewportHeight = getCurrentViewportHeight();
+        const nextViewportWidth = Math.round(window.innerWidth);
+        const widthChanged =
+          Math.abs(nextViewportWidth - lastViewportWidth) > 2;
+        const heightDelta = Math.abs(nextViewportHeight - stableViewportHeight);
+        const isMajorHeightChange = heightDelta >= mobileResizeJumpThreshold;
+
+        // Ignore small browser UI chrome height changes to prevent frame jumps.
+        if (!widthChanged && !isMajorHeightChange) {
+          return;
+        }
+
+        stableViewportHeight = nextViewportHeight;
+        lastViewportWidth = nextViewportWidth;
+      }
+
       resizeCanvas();
       recalculateScrollRange();
       drawFrame(currentFrame);
       requestRender();
     };
 
+    let hasInitialized = false;
+
     const init = async () => {
+      if (hasInitialized) {
+        return;
+      }
+
+      hasInitialized = true;
       await ensureFrameLoaded(1);
       if (destroyed) {
         return;
@@ -178,15 +287,45 @@ export default function useScrollAnimation(
       preloadAround(1);
 
       window.addEventListener("resize", handleResize, { passive: true });
+      if (isMobile && viewport) {
+        viewport.addEventListener("resize", handleResize, {
+          passive: true,
+        });
+      }
       window.addEventListener("scroll", handleScroll, { passive: true });
       handleScroll();
     };
 
-    init();
+    let observer = null;
+
+    if ("IntersectionObserver" in window) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            observer?.disconnect();
+            observer = null;
+            init();
+          }
+        },
+        {
+          root: null,
+          rootMargin: effectiveRootMargin,
+          threshold: 0,
+        },
+      );
+
+      observer.observe(scrollElement);
+    } else {
+      init();
+    }
 
     return () => {
       destroyed = true;
+      observer?.disconnect();
       window.removeEventListener("resize", handleResize);
+      if (isMobile && viewport) {
+        viewport.removeEventListener("resize", handleResize);
+      }
       window.removeEventListener("scroll", handleScroll);
       window.cancelAnimationFrame(rafId);
     };
@@ -196,5 +335,13 @@ export default function useScrollAnimation(
     framesCount,
     generalImageName,
     scrollActionContainer,
+    startOffset,
+    endOffset,
+    mobileStartOffset,
+    mobileEndOffset,
+    mobileResizeJumpThreshold,
+    enabled,
+    activateRootMargin,
+    mobileActivateRootMargin,
   ]);
 }
