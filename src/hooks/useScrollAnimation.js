@@ -17,6 +17,10 @@ export default function useScrollAnimation(
   const activateRootMargin =
     options?.activateRootMargin ?? "1200px 0px 1200px 0px";
   const mobileActivateRootMargin = options?.mobileActivateRootMargin;
+  const eagerPreload = options?.eagerPreload ?? true;
+  const preloadAllFrames = options?.preloadAllFrames ?? false;
+  const initialPreloadCount = options?.initialPreloadCount ?? 10;
+  const preloadBatchSize = options?.preloadBatchSize ?? 8;
 
   useEffect(() => {
     if (!enabled) {
@@ -124,6 +128,39 @@ export default function useScrollAnimation(
     const preloadAround = (frame) => {
       for (let i = frame - 2; i <= frame + 4; i += 1) {
         void ensureFrameLoaded(i);
+      }
+    };
+
+    const preloadInitialFrames = async () => {
+      const safeInitialCount = Math.max(
+        1,
+        Math.min(maxFrames, Number(initialPreloadCount) || 1),
+      );
+      const queue = [];
+
+      for (let frame = 1; frame <= safeInitialCount; frame += 1) {
+        queue.push(ensureFrameLoaded(frame));
+      }
+
+      await Promise.all(queue);
+    };
+
+    const preloadAllFramesInBatches = async () => {
+      const safeBatchSize = Math.max(1, Number(preloadBatchSize) || 1);
+
+      for (
+        let batchStart = 1;
+        batchStart <= maxFrames && !destroyed;
+        batchStart += safeBatchSize
+      ) {
+        const batchEnd = Math.min(maxFrames, batchStart + safeBatchSize - 1);
+        const queue = [];
+
+        for (let frame = batchStart; frame <= batchEnd; frame += 1) {
+          queue.push(ensureFrameLoaded(frame));
+        }
+
+        await Promise.all(queue);
       }
     };
 
@@ -276,7 +313,9 @@ export default function useScrollAnimation(
       }
 
       hasInitialized = true;
-      await ensureFrameLoaded(1);
+      if (!loadedFrames.has(1)) {
+        await ensureFrameLoaded(1);
+      }
       if (destroyed) {
         return;
       }
@@ -295,6 +334,22 @@ export default function useScrollAnimation(
       window.addEventListener("scroll", handleScroll, { passive: true });
       handleScroll();
     };
+
+    if (eagerPreload) {
+      void preloadInitialFrames().then(() => {
+        if (destroyed) {
+          return;
+        }
+
+        if (hasInitialized && loadedFrames.has(1)) {
+          drawFrame(1);
+        }
+      });
+
+      if (preloadAllFrames) {
+        void preloadAllFramesInBatches();
+      }
+    }
 
     let observer = null;
 
@@ -343,5 +398,9 @@ export default function useScrollAnimation(
     enabled,
     activateRootMargin,
     mobileActivateRootMargin,
+    eagerPreload,
+    preloadAllFrames,
+    initialPreloadCount,
+    preloadBatchSize,
   ]);
 }

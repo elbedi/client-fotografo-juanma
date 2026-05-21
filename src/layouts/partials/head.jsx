@@ -24,9 +24,13 @@ export default function Head() {
 
       <link rel="icon" type="image/svg+xml" href={siteConfig.favicon} />
       <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
+        rel="preload"
+        as="image"
+        href="/images/hero-frames/Video_Project_1__001.webp"
+        type="image/webp"
+        fetchpriority="high"
       />
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link
         rel="preconnect"
         href="https://fonts.gstatic.com"

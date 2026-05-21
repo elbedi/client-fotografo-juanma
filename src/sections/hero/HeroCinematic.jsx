@@ -7,6 +7,11 @@ export default function HeroCinematic() {
     64,
     "Video_Project_1__",
     "#hero-cinematic",
+    {
+      preloadAllFrames: true,
+      initialPreloadCount: 16,
+      preloadBatchSize: 8,
+    },
   );
 
   return (

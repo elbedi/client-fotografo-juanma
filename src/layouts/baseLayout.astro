@@ -11,13 +11,80 @@ import Footer from "./partials/footer.jsx";
 <html lang={siteConfig.lang}>
   <Head />
   <body
-    class="bg-background text-on-background font-body antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+    class="is-loading bg-background text-on-background font-body antialiased selection:bg-primary-fixed selection:text-on-primary-fixed"
+    aria-busy="true">
+    <div
+      id="page-preloader"
+      class="page-preloader"
+      role="status"
+      aria-live="polite"
+      aria-label={`Cargando ${site.name}`}>
+      <div class="page-preloader__inner scanline">
+        <span class="page-preloader__tag">Inicializando terminal visual</span>
+        <p class="page-preloader__title glow-text">{site.name}</p>
+        <div class="page-preloader__bar" aria-hidden="true">
+          <span class="page-preloader__bar-fill"></span>
+        </div>
+      </div>
+    </div>
+
     <Header brand={site.name} ctaLabel={site.ctaText} />
     <slot />
     <Footer brand={site.name} email={site.email} phone={site.phone} />
 
     <script>
       import { initLenis } from "../lib/lenis.js";
+
+      const preloader = document.getElementById("page-preloader");
+      const preloaderStartedAt = performance.now();
+      const minimumLoaderTime = 1500;
+      const maximumLoaderTime = 4500;
+
+      const finishPreloader = () => {
+        if (!preloader || preloader.dataset.state === "done") {
+          return;
+        }
+
+        preloader.dataset.state = "done";
+        document.body.classList.remove("is-loading");
+        document.body.setAttribute("aria-busy", "false");
+        window.setTimeout(() => preloader.remove(), 700);
+      };
+
+      const waitForFonts = async () => {
+        if (!("fonts" in document)) {
+          return;
+        }
+
+        await Promise.race([
+          document.fonts.ready,
+          new Promise((resolve) => window.setTimeout(resolve, 1200)),
+        ]);
+      };
+
+      const resolvePreloader = async () => {
+        await waitForFonts();
+        const elapsed = performance.now() - preloaderStartedAt;
+        const remaining = Math.max(0, minimumLoaderTime - elapsed);
+
+        window.setTimeout(finishPreloader, remaining);
+      };
+
+      window.addEventListener(
+        "load",
+        () => {
+          void resolvePreloader();
+        },
+        { once: true },
+      );
+
+      // Safety guard: never block the page if a resource hangs.
+      window.setTimeout(finishPreloader, maximumLoaderTime);
+
+      if (document.readyState === "complete") {
+        void resolvePreloader();
+      }
+
       const lenis = initLenis();
 
       const activeClass = "border-b-2 border-[#ccff00] pb-1 text-[#ccff00]";
