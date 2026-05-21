@@ -55,6 +55,9 @@ export default function AboutSection() {
       endOffset: "-50px",
       activateRootMargin: "0px 0px 0px 0px",
       enabled: isSectionActive,
+      preloadAllFrames: true,
+      initialPreloadCount: 16,
+      preloadBatchSize: 8,
     },
   );
 
